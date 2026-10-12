@@ -8,17 +8,20 @@ import {
 	putSampleCabins,
 	updateCabin,
 } from '../controllers/cabins.ts';
+import { admin } from '../middlewares/admin.ts';
+import { auth } from '../middlewares/auth.ts';
 
 const router: Router = express.Router();
 
-router.put('/', putSampleCabins);
-router.delete('/', deleteSampleCabins);
-
+router.put('/', auth, putSampleCabins);
+router.delete('/', auth, deleteSampleCabins);
+/* ------ ------ The Main API ------ ------ */
 router.get('/', getAllCabins);
-router.get('/:cabinId', getCabin);
-router.post('/', createCabin);
-router.patch('/:cabinId', updateCabin);
-router.delete('/:cabinId', deleteCabin);
+router.get('/:cabinId', auth, getCabin);
+router.post('/', auth, createCabin);
+
+router.patch('/:cabinId', auth, admin, updateCabin);
+router.delete('/:cabinId', auth, admin, deleteCabin);
 
 export { router };
 
