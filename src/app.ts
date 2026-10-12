@@ -7,9 +7,12 @@ import { router as settingsRouter } from './routes/settings.ts';
 import cors from 'cors';
 
 const app: Express = express();
-const port = 4000;
 configDotenv();
-const dbUrl = process.env.MONGODB_URI as string;
+const dbUrl = process.env.MONGODB_URI;
+
+if (!dbUrl) {
+	throw new Error('MONGODB_URI environment variable is required');
+}
 
 app.use(
 	cors({
@@ -31,9 +34,5 @@ mongoose
 app.use('/cabins/', cabinsRouter);
 app.use('/settings/', settingsRouter);
 app.use('/bookings/', bookingsRouter);
-
-app.listen(port, () => {
-	console.log(`Backend is listening on port ${port}`);
-});
 
 export default app;
