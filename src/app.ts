@@ -14,6 +14,26 @@ if (!dbUrl) {
 	throw new Error('MONGODB_URI environment variable is required');
 }
 
+let connectionPromise: Promise<typeof mongoose> | undefined;
+
+const connectToDatabase = () => {
+	if (mongoose.connection.readyState === 1) {
+		return Promise.resolve(mongoose);
+	}
+
+	if (mongoose.connection.readyState === 2) {
+		return mongoose.connection.asPromise();
+	}
+
+	if (!connectionPromise) {
+		connectionPromise = mongoose.connect(dbUrl).finally(() => {
+			connectionPromise = undefined;
+		});
+	}
+
+	return connectionPromise;
+};
+
 app.use(
 	cors({
 		origin: ['*'],
@@ -23,12 +43,15 @@ app.use(
 );
 app.use(express.json());
 
-mongoose
-	.connect(dbUrl)
-	.then(() => {
-		console.log('successfully connected to Mongo atlas!');
-	})
-	.catch((err: Error) => console.log(err.message));
+app.use(async (_req, _res, next) => {
+	try {
+		await connectToDatabase();
+		next();
+	} catch (error) {
+		console.error('MongoDB connection failed:', error);
+		next(error);
+	}
+});
 
 // app.use('/guests/', guestsRouter);
 app.use('/cabins/', cabinsRouter);
