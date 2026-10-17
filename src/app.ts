@@ -17,6 +17,24 @@ if (!dbUrl) {
 	throw new Error('MONGODB_URI environment variable is required');
 }
 
+let dbConnection: Promise<void> | null = null;
+
+const connectToDatabase = () => {
+	if (mongoose.connection.readyState === 1) return Promise.resolve();
+	if (!dbConnection) {
+		dbConnection = mongoose
+			.connect(dbUrl)
+			.then(() => {
+				console.log('successfully connected to Mongo atlas!');
+			})
+			.catch((err: Error) => {
+				dbConnection = null;
+				throw err;
+			});
+	}
+	return dbConnection;
+};
+
 // Setting up CORS resolving
 app.use(
 	cors({
@@ -27,13 +45,15 @@ app.use(
 );
 app.use(express.json());
 
-// Setting up mongodb connection
-mongoose
-	.connect(dbUrl)
-	.then(() => {
-		console.log('successfully connected to Mongo atlas!');
-	})
-	.catch((err: Error) => console.log(err.message));
+app.use(async (_req, res, next) => {
+	try {
+		await connectToDatabase();
+		next();
+	} catch (err) {
+		console.error('MongoDB connection failed:', err);
+		res.status(503).json({ ok: false, message: 'Database unavailable' });
+	}
+});
 
 // Set EJS as the view engine
 app.set('view engine', 'ejs');

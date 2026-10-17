@@ -73,7 +73,11 @@ export const createUser = async (
 			{ expiresIn: '45mins' },
 		);
 		let emailSent = false;
-		const activationLink = `${req.protocol}://${req.host}/users/confirm-email/${vtoken}`;
+		const activationLink = `${
+			process.env.APP_HOST
+				? process.env.APP_HOST
+				: `${req.protocol}://${req.host}`
+		}/users/confirm-email/${vtoken}`;
 		try {
 			const info = await transporter.sendMail({
 				from: process.env.SMTP_USER,
@@ -160,6 +164,7 @@ export const confirmEmail = async (
 		// 	jwtPayload,
 		// 	userDoc,
 		// });
+		//
 		res.status(200).render('activated', {
 			title: 'Account activated',
 			username: `${userDoc.firstName} ${userDoc.lastName}`,
