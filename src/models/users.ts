@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema({
 		unique: true,
 	},
 	password: { type: String, required: true },
+	//
+	_verified: { type: Boolean },
 	_role: { type: String, enum: ['admin', 'user'], default: 'user' },
 });
 
@@ -25,6 +27,7 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre('save', function () {
 	if (this.isNew) {
+		this._verified = false;
 		this._role = 'user';
 	}
 
