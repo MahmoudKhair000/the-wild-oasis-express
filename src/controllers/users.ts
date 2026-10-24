@@ -1,9 +1,9 @@
-import type { Request, Response } from 'express';
-import { usersModel } from '../models/users.ts';
 import bcrypt from 'bcryptjs';
-import jwt, { type JwtPayload } from 'jsonwebtoken';
+import type { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import { usersModel } from '../models/users.ts';
 import transporter from '../services/nodeMailer.ts';
-import { mailHTML } from '../views/htmlTemplates.ts';
+import { mailHTML, passwordUpdateHTML } from '../views/htmlTemplates.ts';
 
 /* Getting Users */
 export const getAllUsers = async (
@@ -78,6 +78,7 @@ export const createUser = async (
 				? process.env.APP_HOST
 				: `${req.protocol}://${req.host}`
 		}/users/confirm-email/${vtoken}`;
+		//
 		try {
 			const info = await transporter.sendMail({
 				from: process.env.SMTP_USER,
@@ -346,31 +347,155 @@ export const deleteUser = async (
 	}
 };
 
-export const updatePassword = async (
+/* Update User's Password */
+export const updatePasswordRequest = async (
 	req: Request,
 	res: Response,
 ): Promise<void> => {
+	//
+	const JWT_SECRET = process.env.JWT_SECRET;
 	const paramsUserId = req.params.userId;
-	const bodyPassword = req.body.password;
+	// const bodyPassword = req.body.password;
+	//
+	const existingUser = await usersModel.findById(paramsUserId);
+	//
+	if (!JWT_SECRET) {
+		res.status(401).json({
+			ok: false,
+			message: 'The JWT Secret is not set up!',
+		});
+		return;
+	}
+	//
+	if (!existingUser) {
+		res.status(404).json({
+			ok: false,
+			message: "That user doesn't exist!",
+		});
+		return;
+	}
+	//
+	// let emailSent = false;
+	// creating the token with the Id
+	const vtoken = jwt.sign(
+		{
+			userId: existingUser._id,
+			// email: existingUser.email,
+			// password: bodyPassword,
+		},
+		JWT_SECRET,
+		{ expiresIn: '1hr' },
+	);
 	//
 	try {
-		const salt = await bcrypt.genSalt(10);
-		const hashPass = await bcrypt.hash(bodyPassword, salt);
-		const userDoc = await usersModel.findByIdAndUpdate(
-			paramsUserId,
-			{ password: hashPass },
-			{ returnDocument: 'after' },
-		);
-		//
+		/*
+		const info = await transporter.sendMail({
+			from: process.env.SMTP_USER,
+			to: existingUser.email,
+			subject: 'Password Update Mail',
+			text: `Hello from The Wild Oasis! Click the link to confirm your new password`,
+			html: passwordUpdateHTML(vtoken),
+		});
+
+		emailSent = info.accepted.length > 0 && info.rejected.length === 0;
+
+		if (emailSent) {
+			console.log('SMTP accepted signup email:', info.response);
+		} else {
+			console.error('SMTP did not accept signup email:', {
+				response: info.response,
+				acceptedRecipients: info.accepted.length,
+				rejectedRecipients: info.rejected.length,
+			});
+			return;
+		}
+		*/
 		res.status(200).json({
 			ok: true,
-			message: 'Password updated successfully!',
-			user: userDoc,
+			message: 'Your password update request was accepted! ↓',
+			token: vtoken,
 		});
 		//
 	} catch (err: unknown) {
-		const errMsg = err instanceof Error ? err.message : 'Something went wrong!';
-		res.status(500).json({ ok: false, message: errMsg });
+		const errMsg =
+			err instanceof Error ? err.message : 'Something Went Wrong!!';
+		res.status(500).json({
+			ok: false,
+			message: errMsg,
+		});
+	}
+};
+
+/* This functionality should change when we make the CMS frontend */
+export const updatePassword = async (
+	req: Request,
+	res: Response,
+	// next: NextFunction,
+): Promise<void> => {
+	/* ---------------------------------------------------- */
+	const JWT_SECRET = process.env.JWT_SECRET;
+	const paramsToken = req.params.token;
+	const bodyPassword = req.body.password;
+	if (!JWT_SECRET) {
+		res.status(401).json({
+			ok: false,
+			message: 'Authentication is not configured',
+		});
+		return;
+	}
+	if (!paramsToken || typeof paramsToken !== 'string') {
+		res.status(401).json({
+			ok: false,
+			message: 'Token could not be found!',
+		});
+		return;
+	}
+	//
+	const jwtPayload = jwt.verify(paramsToken, JWT_SECRET);
+	if (!jwtPayload) {
+		res.status(401).json({
+			ok: false,
+			message: 'JWT payload could not be found',
+		});
+		return;
+	}
+	if (typeof jwtPayload !== 'object' || typeof jwtPayload.userId !== 'string') {
+		res.status(401).json({
+			ok: false,
+			message: 'userId could not be found !',
+		});
+		return;
+	}
+	const { userId } = jwtPayload;
+	// Hashing the password to change
+	const salt = await bcrypt.genSalt(10);
+	const hashPass = await bcrypt.hash(bodyPassword, salt);
+	//
+	try {
+		//
+		const userDoc = await usersModel.findByIdAndUpdate(
+			userId,
+			{ password: hashPass },
+			{ returnDocument: 'after', upsert: true, runValidators: true },
+		);
+
+		res.status(200).json({
+			ok: true,
+			message: 'Password Updated Successfully!',
+			user: {
+				firstName: userDoc.firstName,
+				lastName: userDoc.lastName,
+			},
+		});
+		//
+	} catch (err: unknown) {
+		const errMessage =
+			err instanceof Error ? err.message : 'Something Went Wrong!';
+
+		res.status(500).json({
+			ok: false,
+			message: errMessage,
+		});
 	}
 };
 

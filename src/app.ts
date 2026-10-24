@@ -17,6 +17,14 @@ if (!dbUrl) {
 	throw new Error('MONGODB_URI environment variable is required');
 }
 
+// // Setting up mongodb connection directly
+// mongoose
+// 	.connect(dbUrl)
+// 	.then(() => {
+// 		console.log('successfully connected to Mongo atlas!');
+// 	})
+// 	.catch((err: Error) => console.log(err.message));
+
 let dbConnection: Promise<void> | null = null;
 
 const connectToDatabase = () => {

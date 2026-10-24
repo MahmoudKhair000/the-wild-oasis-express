@@ -1,23 +1,23 @@
-import express, { Router } from 'express';
+import express, { type Router } from 'express';
 import {
+	confirmEmail,
 	createUser,
 	deleteUser,
 	editUser,
 	getAllUsers,
 	getUser,
-	makeAdmin,
 	logInUser,
+	makeAdmin,
 	makeUser,
 	updatePassword,
-	confirmEmail,
+	updatePasswordRequest,
 } from '../controllers/users.ts';
 import { admin } from '../middlewares/admin.ts';
+import { adminOrOwner } from '../middlewares/adminOrOwner.ts';
 import { auth } from '../middlewares/auth.ts';
 import { owner } from '../middlewares/owner.ts';
-import { adminOrOwner } from '../middlewares/adminOrOwner.ts';
-
+/* -------- ------ Initiating Router ------ -------- */
 const router: Router = express.Router();
-
 /* -------- -------- Getting users -------- -------- */
 router.get('/getusers', getAllUsers);
 router.get('/getuser/:userId', auth, getUser);
@@ -32,10 +32,11 @@ router.get('/confirm-email/:token', confirmEmail);
 router.patch('/edit/:userId', auth, owner, editUser);
 router.delete('/delete/:userId', auth, owner, deleteUser);
 /* -------- -------- Password edit -------- -------- */
-// // router.patch('/email/:userId', auth, owner, updateEmail);
-router.patch('/password/:userId', auth, owner, updatePassword);
+router.post('/update-password/:userId', auth, owner, updatePasswordRequest);
+// A token passed with the ID in the payload to update the password
+router.patch('/update-password/:token', updatePassword);
 /* -------- -------- Admin control -------- -------- */
 router.put('/admin/:userId', auth, admin, makeAdmin);
 router.delete('/admin/:userId', auth, adminOrOwner, makeUser);
-
+/* -------- ------- Exporting Router ------ -------- */
 export { router };

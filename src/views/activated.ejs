@@ -2,17 +2,33 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>
     <%= title %>
   </title>
 </head>
 
 <body>
-  <div style="text-align: center;">
-    <h1>Your account has been activated, <%= username %> ✅</h1>
-    <h3>You can go sign in now</h3>
+  <div style="text-align: center; background-color: #f9fafb; padding-block: 50px">
+    <h1 style="color: #2e249c">
+      Your account has been activated, <%= username %> ✅
+    </h1>
+    <h2 style="margin-block: 20px; color: #374151;font-size: x-large;">
+      Go sign in now. Now, You can close this tab.
+    </h2>
+    <!-- This button closes the tab open -->
+    <button id="btn" style="
+					background-color: #4338ca;
+					color: #f9fafb;
+					margin-block: 20px;
+					padding: 10px 15px;
+					border-radius: 10px;
+          font-size: x-large;
+					border: none;
+				" onclick="window.close()">
+      Close this tab
+    </button>
   </div>
 </body>
 

@@ -50,7 +50,7 @@ export function auth(
 			typeof jwtPayload !== 'object'
 			|| typeof jwtPayload.userId !== 'string'
 		) {
-			res.status(402).json({ error: 'Unauthorized' });
+			res.status(401).json({ error: 'Unauthorized' });
 			return;
 		}
 		//  And this is the the secondary purpose of the function, which is
@@ -59,7 +59,7 @@ export function auth(
 		res.locals.userId = jwtPayload.userId;
 	} catch (error: unknown) {
 		if (error instanceof jwt.JsonWebTokenError) {
-			res.status(403).json({ error: 'Unauthorized' });
+			res.status(401).json({ error: 'Unauthorized' });
 			return;
 		}
 		throw error;

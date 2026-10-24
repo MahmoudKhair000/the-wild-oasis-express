@@ -58,3 +58,14 @@ export const mailHTML = (link: string): string => {
   </div>
   `;
 };
+
+export const passwordUpdateHTML = (token: string): string => {
+	return `
+    <div style='text-align: center;'>
+      <h1>Copy this token</h1>
+      <h2>Your param token is: </h2>
+      <h1><strong>${token}</strong></h1>
+      <h2>You have 15 minutes to use it.</h2>
+    </div>
+    `;
+};
