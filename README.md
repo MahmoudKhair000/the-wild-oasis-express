@@ -81,6 +81,18 @@ The project currently has no build script or automated test suite configured. It
 - Authenticated user identity is determined from the JWT `userId` claim. Ownership and administrator checks are applied per route as noted below.
 - CORS is configured with wildcard origin access. Credentialed CORS is not enabled.
 
+## File uploads
+
+`src/services/uploader.ts` exports `uploadImage`, a Multer middleware that accepts one image in the `image` multipart field. It limits uploads to 2 MB and stores the file in the `cabinImages` GridFS bucket using the existing Mongoose connection. The cabin document stores the GridFS file ID in its `image` field.
+
+Cabin creation uses this middleware on `POST /cabins`. Send the cabin fields and the image as `multipart/form-data`. The returned `image` ID can be used with `GET /cabins/images/:id` to stream the image to the browser:
+
+```ts
+<img src={`${API_URL}/cabins/images/${cabin.image}`} alt={cabin.name} />
+```
+
+The image endpoint must run after the application has connected to MongoDB.
+
 ## API reference
 
 Unless indicated otherwise, request and response bodies are JSON. Replace `:userId`, `:guestId`, and `:cabinId` with MongoDB document IDs.

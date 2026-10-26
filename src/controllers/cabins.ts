@@ -1,5 +1,8 @@
 import type { Request, Response } from 'express';
 import { cabinsModel } from '../models/cabins.ts';
+import mongoose, { type ObjectId } from 'mongoose';
+import { getBucket } from '../services/gridfs.ts';
+import { pipeline } from 'node:stream/promises';
 
 /* -- Sample data api -- */
 const sampleCabins = [
@@ -200,10 +203,50 @@ const getCabin = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+const getCabinImage = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const { id: idParam } = req.params;
+		if (typeof idParam !== 'string' || !mongoose.isValidObjectId(idParam)) {
+			res.status(400).end();
+			return;
+		}
+		const id = new mongoose.Types.ObjectId(idParam);
+		const bucket = await getBucket();
+		const [file] = await bucket.find({ _id: id }).toArray();
+		if (!file) {
+			res.status(404).json({ error: 'Image not found' });
+			return;
+		}
+
+		res.set(
+			'Content-Type',
+			file.metadata?.contentType ?? 'application/octet-stream',
+		);
+		res.set('Cache-Control', 'public, max-age=86400');
+		// Stream the file instead of buffering its full contents in server memory.
+		await pipeline(bucket.openDownloadStream(id), res);
+	} catch (error) {
+		console.error('Failed to retrieve cabin image:', error);
+		if (res.headersSent) {
+			res.destroy(error instanceof Error ? error : undefined);
+			return;
+		}
+		res.status(500).json({ error: 'Unable to retrieve image' });
+	}
+};
+
 const createCabin = async (req: Request, res: Response): Promise<void> => {
 	try {
-		const newCabin = req.body;
-		const cabinDoc = await cabinsModel.create(newCabin);
+		if (!req.file) {
+			res.status(400).json({ message: 'Image is required' });
+			return;
+		}
+
+		const cabinDoc = await cabinsModel.create({
+			...req.body,
+			// Store the GridFS ID so clients can request the image from the image route.
+			image: (req.file as typeof req.file & { id: ObjectId }).id,
+		});
 
 		res.status(201).json({
 			// 201 Created: the cabin was created.
@@ -298,6 +341,7 @@ export {
 	deleteSampleCabins,
 	getAllCabins,
 	getCabin,
+	getCabinImage,
 	putSampleCabins,
 	updateCabin,
 };
