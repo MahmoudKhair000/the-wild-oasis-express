@@ -20,7 +20,7 @@ router.delete('/', auth, deleteSampleCabins);
 /* ------ ------ The Main API ------ ------ */
 router.get('/', getAllCabins);
 router.get('/:cabinId', auth, getCabin);
-router.get('/images/:id', getCabinImage);
+router.get('/images/:id', auth, getCabinImage);
 router.post('/', auth, uploadImage, createCabin);
 
 router.patch('/:cabinId', auth, admin, updateCabin);

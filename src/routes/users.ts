@@ -19,7 +19,7 @@ import { owner } from '../middlewares/owner.ts';
 /* -------- ------ Initiating Router ------ -------- */
 const router: Router = express.Router();
 /* -------- -------- Getting users -------- -------- */
-router.get('/getusers', getAllUsers);
+router.get('/getusers', auth, getAllUsers);
 router.get('/getuser/:userId', auth, getUser);
 /* -------- -------- Sign in & up --------- -------- */
 router.put('/signup', createUser);

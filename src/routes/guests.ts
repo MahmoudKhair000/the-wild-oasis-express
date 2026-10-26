@@ -13,8 +13,8 @@ import { auth } from '../middlewares/auth.ts';
 
 const router: Router = express.Router();
 
-router.put('/', auth, putSampleGuests);
-router.delete('/', auth, deleteSampleGuests);
+router.put('/', auth, admin, putSampleGuests);
+router.delete('/', auth, admin, deleteSampleGuests);
 /* ------ ------ The Main API ------ ------ */
 router.get('/', getAllGuests);
 router.get('/:guestId', auth, getGuest);
