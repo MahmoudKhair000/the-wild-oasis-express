@@ -216,7 +216,7 @@ export const logInUser = async (req: Request, res: Response): Promise<void> => {
 	}
 
 	try {
-		const user = await usersModel.findOne({ email });
+		const user = await usersModel.findOne({ email }).select('+password');
 		if (!user) {
 			res.status(404).json({
 				ok: false,

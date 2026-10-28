@@ -1,6 +1,7 @@
+import { eachDayOfInterval, endOfDay } from 'date-fns';
+import { format, isAfter, parseISO } from 'date-fns/fp';
 import type { Request, Response } from 'express';
 import { bookingsModel } from '../models/bookings.ts';
-import { eachDayOfInterval, format, isAfter, parseISO } from 'date-fns/fp';
 import { cabinsModel } from '../models/cabins.ts';
 import { guestsModel } from '../models/guests.ts';
 
@@ -128,26 +129,56 @@ export const getCabinBookedDates = async (
 	try {
 		const bookings = await bookingsModel.find({ cabinId });
 		//
-		const dates = [
-			...new Set(
-				bookings
-					.map((booking) => {
-						return eachDayOfInterval({
-							start: parseISO(booking.startDate),
-							end: parseISO(booking.endDate),
-						}).map((date) => format('yyyy-MM-dd')(date));
-					})
-					.flat()
-					.filter((date) => isAfter(new Date(), date)),
-			),
-		];
+		const isAfterToday = (dateStr: string) =>
+			isAfter(endOfDay(new Date()))(parseISO(dateStr));
+		// turning the date into formatted dateString
+		const formatToDay = (date: Date) => format('yyyy-MM-dd')(date);
+		//
+		const dates = bookings
+			.map((booking) =>
+				eachDayOfInterval({
+					start: parseISO(booking.startDate),
+					end: parseISO(booking.endDate),
+				}),
+			)
+			.flat()
+			.map(formatToDay)
+			.filter(isAfterToday);
 		//
 		res.status(200).json({
 			ok: true,
 			message: 'dates retreived successfully!',
-			data: dates,
+			dates,
 		});
 		//
+	} catch (err) {
+		const errMsg =
+			err instanceof Error
+				? //
+					err.message
+				: //
+					'Something Went Wrong!';
+		//
+		res.status(500).json({ ok: false, message: errMsg });
+	}
+};
+
+export const getGuestBookings = async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
+	const guestId = req.params.guestId;
+	//
+	try {
+		const bookings = await bookingsModel.find({ guestId });
+
+		res
+			.status(200)
+			.json({
+				ok: true,
+				message: 'bookings retreived successfully!',
+				data: bookings,
+			});
 	} catch (err) {
 		const errMsg =
 			err instanceof Error
