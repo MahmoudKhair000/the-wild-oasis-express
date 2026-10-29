@@ -46,8 +46,10 @@ const connectToDatabase = () => {
 // Setting up CORS resolving
 app.use(
 	cors({
-		origin: ['*'],
+		origin: '*',
 		// origin: ['http://localhost:3000'],
+		methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
 		// credentials: true,
 	}),
 );
