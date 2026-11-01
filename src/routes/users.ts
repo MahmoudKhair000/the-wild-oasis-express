@@ -6,6 +6,7 @@ import {
 	editUser,
 	getAllUsers,
 	getUser,
+	getUserImage,
 	logInUser,
 	makeAdmin,
 	makeUser,
@@ -16,12 +17,13 @@ import { admin } from '../middlewares/admin.ts';
 import { adminOrOwner } from '../middlewares/adminOrOwner.ts';
 import { auth } from '../middlewares/auth.ts';
 import { owner } from '../middlewares/owner.ts';
-import { uploadImage } from '../services/uploader.ts';
+import { uploadImage } from '../services/userUploader.ts';
 /* -------- ------ Initiating Router ------ -------- */
 const router: Router = express.Router();
 /* -------- -------- Getting users -------- -------- */
 router.get('/getusers', auth, getAllUsers);
 router.get('/getuser/:userId', auth, getUser);
+router.get('/images/:id', getUserImage);
 /* -------- -------- Sign in & up --------- -------- */
 router.put('/signup', createUser);
 router.post('/login', logInUser);

@@ -5,6 +5,9 @@ import { usersModel } from '../models/users.ts';
 import transporter from '../services/nodeMailer.ts';
 import { mailHTML, passwordUpdateHTML } from '../views/htmlTemplates.ts';
 import type { ObjectId } from 'mongoose';
+import { getBucket } from '../services/gridfs.ts';
+import mongoose from 'mongoose';
+import { pipeline } from 'node:stream/promises';
 
 /* Getting Users */
 export const getAllUsers = async (
@@ -282,9 +285,9 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 	const paramsUserId = req.params.userId;
 
 	if (
-		['email', 'password', '_role', '_verified', '_id', '_v']
-			//
-			.some((property) => Object.hasOwn(update, property))
+		['email', 'password', '_role', '_verified', '_id', '_v'].some((property) =>
+			Object.hasOwn(update, property),
+		)
 	) {
 		res.status(403).json({
 			ok: false,
@@ -319,6 +322,41 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 			ok: false,
 			message: errMsg,
 		});
+	}
+};
+
+export const getUserImage = async (
+	req: Request,
+	res: Response,
+): Promise<void> => {
+	try {
+		const { id: idParam } = req.params;
+		if (typeof idParam !== 'string' || !mongoose.isValidObjectId(idParam)) {
+			res.status(400).end();
+			return;
+		}
+		const id = new mongoose.Types.ObjectId(idParam);
+		const bucket = await getBucket('userImages');
+		const [file] = await bucket.find({ _id: id }).toArray();
+		if (!file) {
+			res.status(404).json({ error: 'Image not found' });
+			return;
+		}
+
+		res.set(
+			'Content-Type',
+			file.metadata?.contentType ?? 'application/octet-stream',
+		);
+		res.set('Cache-Control', 'public, max-age=86400');
+		// Stream the file instead of buffering its full contents in server memory.
+		await pipeline(bucket.openDownloadStream(id), res);
+	} catch (error) {
+		console.error('Failed to retrieve user image:', error);
+		if (res.headersSent) {
+			res.destroy(error instanceof Error ? error : undefined);
+			return;
+		}
+		res.status(500).json({ error: 'Unable to retrieve image' });
 	}
 };
 

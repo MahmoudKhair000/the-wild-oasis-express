@@ -23,7 +23,7 @@ const database = new Promise<MongoDatabase>((resolve, reject) => {
 	}
 });
 
-export const getBucket = async () =>
+export const getBucket = async (bucketName: string) =>
 	new mongoose.mongo.GridFSBucket(await database, {
-		bucketName: 'cabinImages',
+		bucketName,
 	});

@@ -211,7 +211,7 @@ const getCabinImage = async (req: Request, res: Response): Promise<void> => {
 			return;
 		}
 		const id = new mongoose.Types.ObjectId(idParam);
-		const bucket = await getBucket();
+		const bucket = await getBucket('cabinImages');
 		const [file] = await bucket.find({ _id: id }).toArray();
 		if (!file) {
 			res.status(404).json({ error: 'Image not found' });

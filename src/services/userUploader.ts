@@ -5,12 +5,15 @@ import multer from 'multer';
 const GridFsStorage: StorageEngine = {
 	async _handleFile(req, file, callback) {
 		const filename = `${Date.now()}-${file.originalname}`;
-		const uploadStream = (await getBucket()).openUploadStream(filename, {
-			metadata: {
-				contentType: file.mimetype,
-				uploadedBy: req.res?.locals.userId,
+		const uploadStream = (await getBucket('userImages')).openUploadStream(
+			filename,
+			{
+				metadata: {
+					contentType: file.mimetype,
+					uploadedBy: req.res?.locals.userId,
+				},
 			},
-		});
+		);
 
 		// Notify Multer only after GridFS has finished storing the stream.
 		file.stream
@@ -26,7 +29,7 @@ const GridFsStorage: StorageEngine = {
 	},
 	async _removeFile(_req, file, callback) {
 		// Multer calls this if a later middleware rejects an already-uploaded file.
-		(await getBucket())
+		(await getBucket('userImages'))
 			.delete((file as any).id)
 			.then(() => callback(null), callback);
 	},

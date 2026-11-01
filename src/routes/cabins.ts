@@ -12,7 +12,7 @@ import {
 } from '../controllers/cabins.ts';
 import { admin } from '../middlewares/admin.ts';
 import { auth } from '../middlewares/auth.ts';
-import { uploadImage } from '../services/uploader.ts';
+import { uploadImage } from '../services/cabinUploader.ts';
 
 const router: Router = express.Router();
 
