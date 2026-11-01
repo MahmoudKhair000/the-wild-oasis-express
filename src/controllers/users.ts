@@ -249,7 +249,15 @@ export const logInUser = async (req: Request, res: Response): Promise<void> => {
 				ok: true,
 				message: 'Successfully Logged In !',
 				token,
-				user,
+				user: {
+					_id: user._id,
+					firstName: user.firstName,
+					lastName: user.lastName,
+					email: user.email,
+					imageUrl: user.imageUrl,
+					_verified: user._verified,
+					_role: user._role,
+				},
 			});
 		} else {
 			res.status(401).json({
