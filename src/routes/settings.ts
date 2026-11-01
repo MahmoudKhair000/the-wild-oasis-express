@@ -11,8 +11,7 @@ const router: Router = express.Router();
 
 /* ------ ------ The Main API ------ ------ */
 router.get('/', auth, getSettings);
-router.post('/', auth, admin, editSettings);
+router.post('/', auth, editSettings);
 router.put('/reset', auth, admin, resetSettings);
 
 export { router };
-

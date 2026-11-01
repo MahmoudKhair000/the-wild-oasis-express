@@ -297,8 +297,9 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 		return;
 	}
 
-	if (req.file)
+	if (req.file) {
 		update.imageUrl = (req.file as typeof req.file & { id: ObjectId }).id;
+	}
 
 	try {
 		const user = await usersModel.findByIdAndUpdate(paramsUserId, update, {
