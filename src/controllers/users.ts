@@ -309,12 +309,7 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 		res.status(200).json({
 			ok: true,
 			message: 'User was edited successfully!',
-			user: {
-				firstName: user.firstName,
-				lastName: user.lastName,
-				email: user.email,
-				_role: user._role,
-			},
+			user,
 		});
 	} catch (err: unknown) {
 		const errMsg = err instanceof Error ? err.message : 'Something went wrong!';
