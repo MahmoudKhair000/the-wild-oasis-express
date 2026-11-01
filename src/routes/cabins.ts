@@ -3,6 +3,7 @@ import {
 	createCabin,
 	deleteCabin,
 	deleteSampleCabins,
+	duplicateCabin,
 	getAllCabins,
 	getCabin,
 	getCabinImage,
@@ -15,13 +16,16 @@ import { uploadImage } from '../services/uploader.ts';
 
 const router: Router = express.Router();
 
-router.put('/', auth, putSampleCabins);
+router.put('/sample', auth, putSampleCabins);
 router.delete('/', auth, deleteSampleCabins);
 /* ------ ------ The Main API ------ ------ */
 router.get('/', getAllCabins);
 router.get('/:cabinId', auth, getCabin);
+
 router.get('/images/:id', getCabinImage);
+
 router.post('/', auth, uploadImage, createCabin);
+router.post('/duplicate/:cabinId', auth, uploadImage, duplicateCabin);
 
 router.patch('/:cabinId', auth, admin, uploadImage, updateCabin);
 router.delete('/:cabinId', auth, admin, deleteCabin);

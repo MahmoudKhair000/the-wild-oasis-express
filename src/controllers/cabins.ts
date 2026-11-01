@@ -1,8 +1,8 @@
 import type { Request, Response } from 'express';
-import { cabinsModel } from '../models/cabins.ts';
 import mongoose, { type ObjectId } from 'mongoose';
-import { getBucket } from '../services/gridfs.ts';
 import { pipeline } from 'node:stream/promises';
+import { cabinsModel } from '../models/cabins.ts';
+import { getBucket } from '../services/gridfs.ts';
 
 /* -- Sample data api -- */
 const sampleCabins = [
@@ -266,6 +266,35 @@ const createCabin = async (req: Request, res: Response): Promise<void> => {
 	}
 };
 
+const duplicateCabin = async (req: Request, res: Response): Promise<void> => {
+	try {
+		const cabinId = req.params.cabinId;
+		const cabinToDuplicate = await cabinsModel.findById(cabinId);
+
+		const newCabin = await cabinsModel.create({
+			_id: new mongoose.Types.ObjectId(),
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+			...cabinToDuplicate?.toObject(),
+		});
+
+		res.status(201).json({
+			// 201 Created: the cabin was duplicated.
+			ok: true,
+			message: `Cabin ${cabinId} duplicated successfully!`,
+			data: newCabin,
+		});
+	} catch (err: unknown) {
+		const errMsg =
+			err instanceof Error ? err.message : 'Something Went Wrong !!';
+		res.status(500).json({
+			// 500 Internal Server Error: the operation failed unexpectedly.
+			ok: false,
+			message: errMsg,
+		});
+	}
+};
+
 const updateCabin = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const update = req.body;
@@ -346,6 +375,7 @@ export {
 	createCabin,
 	deleteCabin,
 	deleteSampleCabins,
+	duplicateCabin,
 	getAllCabins,
 	getCabin,
 	getCabinImage,
