@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { usersModel } from '../models/users.ts';
 import transporter from '../services/nodeMailer.ts';
 import { mailHTML, passwordUpdateHTML } from '../views/htmlTemplates.ts';
+import type { ObjectId } from 'mongoose';
 
 /* Getting Users */
 export const getAllUsers = async (
@@ -281,9 +282,9 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 	const paramsUserId = req.params.userId;
 
 	if (
-		['email', 'password', '_role', '_verified', '_id', '_v'].some((property) =>
-			Object.hasOwn(update, property),
-		)
+		['email', 'password', '_role', '_verified', '_id', '_v']
+			//
+			.some((property) => Object.hasOwn(update, property))
 	) {
 		res.status(403).json({
 			ok: false,
@@ -292,6 +293,9 @@ export const editUser = async (req: Request, res: Response): Promise<void> => {
 		});
 		return;
 	}
+
+	if (req.file)
+		update.imageUrl = (req.file as typeof req.file & { id: ObjectId }).id;
 
 	try {
 		const user = await usersModel.findByIdAndUpdate(paramsUserId, update, {

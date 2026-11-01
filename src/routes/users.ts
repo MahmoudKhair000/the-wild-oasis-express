@@ -16,6 +16,7 @@ import { admin } from '../middlewares/admin.ts';
 import { adminOrOwner } from '../middlewares/adminOrOwner.ts';
 import { auth } from '../middlewares/auth.ts';
 import { owner } from '../middlewares/owner.ts';
+import { uploadImage } from '../services/uploader.ts';
 /* -------- ------ Initiating Router ------ -------- */
 const router: Router = express.Router();
 /* -------- -------- Getting users -------- -------- */
@@ -29,7 +30,7 @@ router.get('/confirm-email/:token', confirmEmail);
 // There is no 'LogOut' algorithm in the Backend, logging out is losing
 // the JWT auth token from the request headers in the Frontend localStorage
 /* -------- -------- Edit & delete -------- -------- */
-router.patch('/edit/:userId', auth, owner, editUser);
+router.patch('/edit/:userId', auth, owner, uploadImage, editUser);
 router.delete('/delete/:userId', auth, owner, deleteUser);
 /* -------- -------- Password edit -------- -------- */
 router.post('/update-password/:userId', auth, owner, updatePasswordRequest);

@@ -269,10 +269,17 @@ const createCabin = async (req: Request, res: Response): Promise<void> => {
 const updateCabin = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const update = req.body;
+
+		if (req.file)
+			update.image = (req.file as typeof req.file & { id: ObjectId }).id;
+
 		const updatedCabin = await cabinsModel.findOneAndUpdate(
 			{ _id: req.params.cabinId },
-			{ ...update, updated_at: new Date() },
-			{ returnDocument: 'after', runValidators: true },
+			{
+				...update,
+				updated_at: new Date(),
+			},
+			{ returnDocument: 'after', upsert: true, runValidators: true },
 		);
 
 		if (!updatedCabin) {
