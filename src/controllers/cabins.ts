@@ -272,10 +272,10 @@ const duplicateCabin = async (req: Request, res: Response): Promise<void> => {
 		const cabinToDuplicate = await cabinsModel.findById(cabinId);
 
 		const newCabin = await cabinsModel.create({
+			...cabinToDuplicate?.toObject(),
 			_id: new mongoose.Types.ObjectId(),
 			created_at: new Date().toISOString(),
 			updated_at: new Date().toISOString(),
-			...cabinToDuplicate?.toObject(),
 		});
 
 		res.status(201).json({
