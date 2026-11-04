@@ -245,6 +245,8 @@ vercel.json                Vercel routing/build configuration
 ## Swagger UI
 
 Start the backend with `pnpm dev`, then open the interactive Swagger UI at
-`http://localhost:4000/api-docs`. Protected endpoints use a JWT bearer token:
+`http://localhost:4000/api-docs`. On Vercel, open `/api-docs` on the deployed
+domain. The OpenAPI document is also available at `/api-docs/openapi.json`.
+Protected endpoints use a JWT bearer token:
 select **Authorize** in Swagger UI and enter the token returned by the login
 endpoint.
