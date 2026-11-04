@@ -1,32 +1,35 @@
+// importing the required modules
 import cors from 'cors';
 import 'dotenv/config';
 import express, { type Express } from 'express';
 import mongoose from 'mongoose';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+// Swagger imports for the documentation
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger.ts';
+// importing the main routers
 import { router as bookingsRouter } from './routes/bookings.ts';
 import { router as cabinsRouter } from './routes/cabins.ts';
 import { router as guestsRouter } from './routes/guests.ts';
 import { router as settingsRouter } from './routes/settings.ts';
 import { router as usersRouter } from './routes/users.ts';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 const app: Express = express();
 const dbUrl = process.env.MONGODB_URI;
+if (!dbUrl) throw new Error('MONGODB_URI environment variable is required');
 
-if (!dbUrl) {
-	throw new Error('MONGODB_URI environment variable is required');
-}
-
-// // Setting up mongodb connection directly
-// mongoose
-// 	.connect(dbUrl)
-// 	.then(() => {
-// 		console.log('successfully connected to Mongo atlas!');
-// 	})
-// 	.catch((err: Error) => console.log(err.message));
-
+/*
+// Setting up mongodb connection directly
+	mongoose
+		.connect(dbUrl)
+		.then(() => {
+			console.log('successfully connected to Mongo atlas!');
+		})
+		.catch((err: Error) => console.log(err.message));
+*/
+// Setting up mongodb connection with a promise to avoid multiple connections
 let dbConnection: Promise<void> | null = null;
-
 const connectToDatabase = () => {
 	if (mongoose.connection.readyState === 1) return Promise.resolve();
 	if (!dbConnection) {
@@ -53,8 +56,14 @@ app.use(
 		// credentials: true,
 	}),
 );
+
+// Setting up express request handling
 app.use(express.json());
 
+// Setting up swagger documentation route
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// Setting up mongoose connection
 app.use(async (_req, res, next) => {
 	try {
 		await connectToDatabase();
@@ -73,10 +82,12 @@ app.set(
 );
 
 // Assigning routes to main routes
+// , after handling the db connection and setting up views
 app.use('/users/', usersRouter);
 app.use('/guests/', guestsRouter);
 app.use('/cabins/', cabinsRouter);
 app.use('/settings/', settingsRouter);
 app.use('/bookings/', bookingsRouter);
 
+// Exporting the app for server and serverless functions (Vercel)
 export default app;

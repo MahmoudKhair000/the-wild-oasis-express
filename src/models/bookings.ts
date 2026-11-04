@@ -7,6 +7,7 @@ const bookingSchema = new Schema({
 	cabinId: { type: mongoose.Types.ObjectId, required: true },
 	guestId: { type: mongoose.Types.ObjectId, required: true },
 	//
+	//
 	startDate: { type: String, required: true },
 	endDate: { type: String, required: true },
 	//

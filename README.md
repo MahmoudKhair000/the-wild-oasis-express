@@ -8,6 +8,7 @@ The Wild Oasis Backend is a TypeScript REST API for the Wild Oasis cabin-managem
 - [Getting started](#getting-started)
 - [Environment variables](#environment-variables)
 - [Running the server](#running-the-server)
+- [Swagger UI](#swagger-ui)
 - [API conventions](#api-conventions)
 - [API reference](#api-reference)
 - [Data models](#data-models)
@@ -240,3 +241,10 @@ vercel.json                Vercel routing/build configuration
 - The password-update request endpoint currently returns the update token directly. Email delivery for that flow is commented out.
 - The sample-data deletion endpoints remove every document in their respective collection, not just sample records. They are available to any authenticated account, so use them carefully.
 - The project does not currently define build, lint, or working test scripts.
+
+## Swagger UI
+
+Start the backend with `pnpm dev`, then open the interactive Swagger UI at
+`http://localhost:4000/api-docs`. Protected endpoints use a JWT bearer token:
+select **Authorize** in Swagger UI and enter the token returned by the login
+endpoint.
