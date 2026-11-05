@@ -5,21 +5,18 @@ import express, { type Express } from 'express';
 import mongoose from 'mongoose';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-// Swagger imports for the documentation
-import swaggerSpec from './config/swagger.ts';
 // importing the main routers
 import { router as bookingsRouter } from './routes/bookings.ts';
 import { router as cabinsRouter } from './routes/cabins.ts';
 import { router as guestsRouter } from './routes/guests.ts';
 import { router as settingsRouter } from './routes/settings.ts';
+import { serveSwagger, serveSwaggerJson } from './routes/swagger.ts';
 import { router as usersRouter } from './routes/users.ts';
 
 const app: Express = express();
-const dbUrl = process.env.MONGODB_URI;
-if (!dbUrl) throw new Error('MONGODB_URI environment variable is required');
 
-/*
 // Setting up mongodb connection directly
+/*
 	mongoose
 		.connect(dbUrl)
 		.then(() => {
@@ -27,6 +24,12 @@ if (!dbUrl) throw new Error('MONGODB_URI environment variable is required');
 		})
 		.catch((err: Error) => console.log(err.message));
 */
+
+const dbUrl = process.env.MONGODB_URI;
+if (!dbUrl) {
+	throw new Error('MONGODB_URI environment variable is required');
+}
+
 // Setting up mongodb connection with a promise to avoid multiple connections
 let dbConnection: Promise<void> | null = null;
 const connectToDatabase = () => {
@@ -60,34 +63,8 @@ app.use(
 app.use(express.json());
 
 // Setting up swagger documentation route
-app.get('/api-docs/openapi.json', (_req, res) => {
-	res.json(swaggerSpec);
-});
-app.get(['/api-docs', '/api-docs/'], (_req, res) => {
-	res.type('html').send(`<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>The Wild Oasis API</title>
-		<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.34.1/swagger-ui.css">
-	</head>
-	<body>
-		<div id="swagger-ui"></div>
-		<script src="https://unpkg.com/swagger-ui-dist@5.34.1/swagger-ui-bundle.js"></script>
-		<script src="https://unpkg.com/swagger-ui-dist@5.34.1/swagger-ui-standalone-preset.js"></script>
-		<script>
-			window.onload = () => SwaggerUIBundle({
-				url: window.location.origin + '/api-docs/openapi.json',
-				dom_id: '#swagger-ui',
-				deepLinking: true,
-				presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
-				layout: 'StandaloneLayout',
-			});
-		</script>
-	</body>
-</html>`);
-});
+app.get('/api-docs/openapi.json', serveSwaggerJson);
+app.get(['/api-docs', '/api-docs/'], serveSwagger);
 
 // Setting up mongoose connection
 app.use(async (_req, res, next) => {
