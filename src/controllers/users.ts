@@ -245,8 +245,8 @@ export const logInUser = async (req: Request, res: Response): Promise<void> => {
 				// And this is the environment variable of JWT_SECRET
 				jwtSecret,
 				// Sign options of the token, expiration, algorithm, etc. At least expiresIn
-				// { expiresIn: '1h' },
-				{ expiresIn: '3hours' },
+				{ expiresIn: '1h' },
+				// { expiresIn: '3hours' },
 			);
 
 			res.status(200).json({
