@@ -68,6 +68,10 @@ app.use(
 app.use(express.json());
 
 // Setting up Swagger documentation routes
+app.get('/api-docs/session', protectSwagger, (_req, res) => {
+	res.setHeader('Cache-Control', 'no-store');
+	res.sendStatus(204);
+});
 app.post('/api-docs/session', createSwaggerSession);
 app.get('/api-docs/openapi.json', protectSwagger, serveSwaggerJson);
 app.get(['/api-docs', '/api-docs/'], serveSwagger);

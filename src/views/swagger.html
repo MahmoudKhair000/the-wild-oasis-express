@@ -35,28 +35,7 @@
   <script>
     window.onload = async () => {
       const message = document.getElementById('access-message');
-      let key = window.prompt('Enter the API documentation key');
-      if (key === null) {
-        message.textContent =
-          'Access cancelled. Reload this page to try again.';
-        return;
-      }
-
-      try {
-        const response = await fetch('/api-docs/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key }),
-        });
-        key = '';
-        if (!response.ok) {
-          message.textContent =
-            response.status === 503
-              ? 'API documentation access is not configured.'
-              : 'Invalid key. Reload this page to try again.';
-          return;
-        }
-
+      const loadSwagger = () => {
         message.textContent = '';
         SwaggerUIBundle({
           url: window.location.origin + '/api-docs/openapi.json',
@@ -68,10 +47,53 @@
             document.getElementById('auth-notice').hidden = false;
           },
         });
-      } catch {
+      };
+
+      try {
+        const sessionResponse = await fetch('/api-docs/session', {
+          cache: 'no-store',
+        });
+
+        if (sessionResponse.ok) {
+          loadSwagger();
+          return;
+        }
+        if (sessionResponse.status === 503) {
+          message.textContent = 'API documentation access is not configured.';
+          return;
+        }
+        if (sessionResponse.status !== 401) {
+          message.textContent = 'Unable to check the documentation session.';
+          return;
+        }
+
+        let key = window.prompt('Enter the API documentation key');
+        if (key === null) {
+          message.textContent =
+            'Access cancelled. Reload this page to try again.';
+          return;
+        }
+
+        const response = await fetch('/api-docs/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key }),
+          cache: 'no-store',
+        });
         key = '';
+
+        if (!response.ok) {
+          message.textContent =
+            response.status === 503
+              ? 'API documentation access is not configured.'
+              : 'Invalid key. Reload this page to try again.';
+          return;
+        }
+
+        loadSwagger();
+      } catch {
         message.textContent =
-          'Unable to verify the key. Reload this page to try again.';
+          'Unable to verify the documentation session. Reload this page to try again.';
       }
     };
   </script>
