@@ -91,15 +91,20 @@ The project currently has no build script or automated test suite configured. It
 
 ## File uploads
 
-`src/services/uploader.ts` exports `uploadImage`, a Multer middleware that accepts one image in the `image` multipart field. It limits uploads to 2 MB and stores the file in the `cabinImages` GridFS bucket using the existing Mongoose connection. The cabin document stores the GridFS file ID in its `image` field.
+The application stores uploaded files in MongoDB GridFS using dedicated upload middlewares:
 
-Cabin creation uses this middleware on `POST /cabins`. Send the cabin fields and the image as `multipart/form-data`. The returned `image` ID can be used with `GET /cabins/images/:id` to stream the image to the browser:
+- `src/services/cabinUploader.ts` exports `uploadImage` for cabin media and stores files in the `cabinImages` bucket.
+- `src/services/userUploader.ts` exports `uploadImage` for user avatars and stores files in the `userImages` bucket.
+
+Each middleware accepts a single file in the `image` multipart field, limits uploads to 2 MB, and checks that the file is an image before storing it. Cabin and user documents keep the GridFS file ID in their `image` field.
+
+Cabin creation uses the cabin upload middleware on `POST /cabins`. Send the cabin fields and the image as `multipart/form-data`. The returned `image` ID can be used with `GET /cabins/images/:id` to stream the image to the browser:
 
 ```ts
 <img src={`${API_URL}/cabins/images/${cabin.image}`} alt={cabin.name} />
 ```
 
-The image endpoint must run after the application has connected to MongoDB.
+The image endpoints must run after the application has connected to MongoDB. User profile images are served from `GET /users/images/:id` when an account includes an uploaded `image` reference.
 
 ## API reference
 
@@ -228,13 +233,20 @@ api/
 src/
   app.ts                   Express app, middleware, database connection, route mounting
   server.ts                Local HTTP server
-  controllers/             Route handlers
+  config/swagger.ts        Swagger/OpenAPI configuration
+  controllers/             Endpoint handlers for users, cabins, guests, bookings, and settings
   middlewares/             JWT authentication, ownership, and role checks
   models/                  Mongoose schemas and models
-  routes/                  Express route definitions
-  services/nodeMailer.ts   SMTP transporter
-  util/mail.html           Email markup asset
-  views/                   EJS confirmation view and email templates
+  routes/                  Express route definitions and Swagger annotations
+  services/
+    cabinUploader.ts       Cabin image upload middleware
+    gridfs.ts              GridFS bucket helpers
+    nodeMailer.ts          SMTP transporter for email delivery
+    userUploader.ts        User profile image upload middleware
+  util/
+    helpers.ts             Shared helpers
+    mail.html              Email templating asset
+  views/                   EJS templates used for confirmation and email rendering
 vercel.json                Vercel routing/build configuration
 ```
 
