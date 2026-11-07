@@ -47,6 +47,7 @@ The server listens on port `4000` by default. Set `PORT` to use another port. Th
 | --- | --- | --- |
 | `MONGODB_URI` | Yes | MongoDB connection URI. The application fails to initialize if it is missing. |
 | `JWT_SECRET` | For auth flows | Secret used to sign and verify authentication, email confirmation, and password-update tokens. |
+| `API_DOCS_SECRET` | To access API docs | Secret key prompted for by Swagger UI and exchanged for an eight-hour documentation session. |
 | `SMTP_HOST` | For email delivery | SMTP server hostname. |
 | `SMTP_PORT` | No | SMTP port; defaults to `587`. |
 | `SMTP_SECURE` | No | Set to `true` or `false` to explicitly select TLS mode. If omitted, secure mode defaults to `true` on port `465` and `false` otherwise. |
@@ -56,6 +57,12 @@ The server listens on port `4000` by default. Set `PORT` to use another port. Th
 | `PORT` | No | Local HTTP port; defaults to `4000`. |
 
 Do not commit `.env` files or real credentials to source control.
+Set `API_DOCS_SECRET` to a strong, unique secret in your local environment and
+deployment settings. Access the documentation over HTTPS and enter the key in
+the prompt. The key is sent in a POST body and exchanged for an eight-hour
+HttpOnly session cookie; the raw key is not sent in request headers. The
+`/api-docs` page displays the prompt, while `/api-docs/openapi.json` requires a
+valid session. Documentation access returns `503` until the secret is configured.
 
 ## Running the server
 
@@ -244,9 +251,11 @@ vercel.json                Vercel routing/build configuration
 
 ## Swagger UI
 
-Start the backend with `pnpm dev`, then open the interactive Swagger UI at
-`http://localhost:4000/api-docs`. On Vercel, open `/api-docs` on the deployed
-domain. The OpenAPI document is also available at `/api-docs/openapi.json`.
+Start the backend with `pnpm dev`, set `API_DOCS_SECRET`, then open the
+interactive Swagger UI at `http://localhost:4000/api-docs` and enter the key
+when prompted. On Vercel, open `/api-docs` on the deployed domain over HTTPS.
+The key is exchanged for an eight-hour HttpOnly session cookie; the OpenAPI
+document at `/api-docs/openapi.json` is available only with a valid session.
 Protected endpoints use a JWT bearer token:
 select **Authorize** in Swagger UI and enter the token returned by the login
 endpoint.

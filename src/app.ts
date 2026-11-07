@@ -10,7 +10,12 @@ import { router as bookingsRouter } from './routes/bookings.ts';
 import { router as cabinsRouter } from './routes/cabins.ts';
 import { router as guestsRouter } from './routes/guests.ts';
 import { router as settingsRouter } from './routes/settings.ts';
-import { serveSwagger, serveSwaggerJson } from './routes/swagger.ts';
+import {
+	createSwaggerSession,
+	protectSwagger,
+	serveSwagger,
+	serveSwaggerJson,
+} from './routes/swagger.ts';
 import { router as usersRouter } from './routes/users.ts';
 
 const app: Express = express();
@@ -62,8 +67,9 @@ app.use(
 // Setting up express request handling
 app.use(express.json());
 
-// Setting up swagger documentation route
-app.get('/api-docs/openapi.json', serveSwaggerJson);
+// Setting up Swagger documentation routes
+app.post('/api-docs/session', createSwaggerSession);
+app.get('/api-docs/openapi.json', protectSwagger, serveSwaggerJson);
 app.get(['/api-docs', '/api-docs/'], serveSwagger);
 
 // Setting up mongoose connection
